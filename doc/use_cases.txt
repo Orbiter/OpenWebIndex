@@ -1,0 +1,23 @@
+This is a list of possible use cases for the openwebindex which had been collected
+during a brainstorming at the meeting on 10.2.2015.
+This list may neither be complete nor correct and is not a finalized to-do. It is
+just a collection of ideas.
+This list is here to document the possible framework for requirements of the API.
+The API must provide options and values to make these use cases possible.
+
+Use Cases:
+- support different display formats and formatting in the search result
+- do a web archiving
+- do a monitoring (of domains/hosts or the openwebindex Backbone?)
+- provide a tool to do documentation (unclear what that means)
+- predictive analytics?
+- provide a link graph / backlinks
+- quantitive analysis
+- provide large data sets about analytics and other lists (backlinks etc)
+- provide a payment option for large-data services
+- provide a browser for content in the web
+- linguistic analyses
+- trend analyses
+
+Remember: this list are not ideas and suggestions for the API, it is a list of
+suggestions and ideas for the search portal which is NOT part of #openwebindex.
