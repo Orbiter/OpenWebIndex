@@ -1,0 +1,6 @@
+#
+# api_retrieval.txt
+# (C) 11.02.2015 [CC-by-SA] Michael Christen, @0rb1t3r 
+#
+# this document is a sub-specification of api_concept.txt
+#

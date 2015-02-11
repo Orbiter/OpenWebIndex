@@ -12,29 +12,38 @@ This has an exception if the request frequence is too high.
 For high-volume users, there will be a payment option for mass retrieval
 which then actually requires an account and authorization at the api.
 
+
 A2: The API provides privacy
 The api software should not store and/or log any IP addresses permanently.
 However, to detect mass retrieval and to protect itself it is necessary to
 store IP addresses temporary in RAM. 
+
 
 A3: Retrieval Functions
 The api provides information retrieval functions to search the document
 (web etc.).
 The api may also provide inside information about link structure
 and crawl success details.
+# for details see: api_retrieval.txt
+
 
 A4: Contribution Functions
 The api should provide push functions to enable users to insert information.
 Pushed information can be on document basis (which requires either
 authentication or fraud detection or both) or on host-bases (which could
 start a web crawl based on the history of crawls of the domain and domain size)
+# for details see: api_contribution.txt
+
 
 A5: Maintenance Functions
 The api should provide a function to announce non-existent document.
 This may cause that the document is deleted from the index if it actually
 does not exist any more as document in the web. This requires fraud detection
 to protect the function to be mis-used as censoring tool.
+# for details see: api_maintenance.txt
+
 
 A6: Historisation and cache access
 The api should provide access to cached document including different versions
 of the document in the past.
+# for details see: api_historization.txt
