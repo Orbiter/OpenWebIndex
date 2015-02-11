@@ -1,3 +1,6 @@
+This is (by now) the git repository of the #openwebindex API architect https://twitter.com/0rb1t3r/
+The following is a copy of the text from http://www.suma-lab.de/webindex/
+
 EUROPE NEEDS AN OPEN INDEX OF THE WEB
 
 Initiators:
