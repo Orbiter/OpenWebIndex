@@ -1,8 +1,13 @@
-This is a list of possible use cases for the openwebindex which had been collected
-during a brainstorming at the meeting on 10.2.2015.
-This list may neither be complete nor correct and is not a finalized to-do. It is
-just a collection of ideas.
-This list is here to document the possible framework for requirements of the API.
+#
+# use_cases.txt
+# (C) 11.02.2015 [CC-by-SA] Michael Christen, @0rb1t3r 
+#
+
+This is a list of possible use cases for the openwebindex which had been
+collected during a brainstorming at the meeting on 10.2.2015.
+This list may neither be complete nor correct and is not a finalized to-do.
+It is just a collection of ideas. This list is here to document the possible
+framework for requirements of the API.
 The API must provide options and values to make these use cases possible.
 
 Use Cases:
