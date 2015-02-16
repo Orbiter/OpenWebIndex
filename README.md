@@ -12,7 +12,8 @@ Initiators:
 5. Agata Królikowski, Leuphana Universität Lüneburg
 6. Lambert Heller, Technische Informationsbibliothek Hannover
 7. Dr. Wolfgang Sander-Beuermann, SUMA-EV – Verein für Freien Wissenszugang
-1. ONE SEARCH ENGINE IS NOT ENOUGH!
+
+ONE SEARCH ENGINE IS NOT ENOUGH!
 
 Europe’s digital economy and civil society are virtually dependent on non-European businesses. This is particularly evident with regard to search engines, the cornerstone of our digital information infrastructure. Google currently dominates the market, leading to dependencies and economic damage that are no longer acceptable.
 
