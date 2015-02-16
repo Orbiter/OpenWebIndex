@@ -4,3 +4,158 @@
 #
 # this document is a sub-specification of api_concept.txt
 #
+
+This document contains the api essentials for several services. Each service
+is implemented as http(s) servlet. Every servlet shall support the transmission
+of parameters as GET and POST operation. POST provides more security because
+the parameter values are not transmitted in the http metadata and therefore
+do not occur in http/proxy logs while GET operations are more convenient for
+development and testing.
+
+JSONP compliance:
+All json-servlets shall be callable with a GET/POST attribute 'callback'. If
+a servlet is called using that attribute, the whole result response is
+encapsulated into a JavaScript function call using the callback value as
+function name.
+
+Servlets described in this document:
+/api/push.json
+/api/crawl.json
+
+
+#
+# servlet /api/push.json
+#
+
+This servlet makes user-generated content available to the openwebindex
+platform. To protect the platform to become spamed with false content, the
+access must be restricted to authorized clients only. In this context, false
+content means that the resource key within the pushed content (the URL) points
+to a place where the pushed text is not available. False content must be
+avoided and therefore it is recommended to verify pushed content even if the
+authentified client is authorised.
+
+
+* GET/POST parameters (GET should only be used for testing).
+All parameters are required, none is optional.
+
+- 'count'
+An integer number denoting the number of documents pushed within this
+POST request.
+
+- 'auth'
+This attribute must be filled with a value for authentication. This may be i.e.
+an OAuth string. Search results which do not require authorization must be
+identical to search request with and without the auth value to ensure
+transparency against the usage of authorized results
+
+Also attached must be a set of <count> documents with their metadata.
+The documents are numbered from 0 to <count>-1. This document number X is used
+to name attribute field names for each of the documents. In the following
+list, replace thecharacter X with those numbers of the file:
+
+- 'url-X'
+The URL which is used in a search result as link to the submitted document.
+
+- 'data-X'
+This is the binary data of the document.
+
+- 'collection-X'
+A name for a collection which is assigned to the document. This can be an
+arbitrary word or a comma-separated list of terms. These words will be listed
+in the collection navigation for a search facet (if that facet is switched on).
+
+- 'responseHeader-X'
+A HTTP response header line. This can be used to submit all kinds of metadata
+which YaCy is able to process. 
+
+You should submit the Content-Type and Last-Modified header fields using the
+responseHeader-X post attribute. This would look like this: 
+
+responseHeader-X=Last-Modified:<Last-Modified-String>
+The <Last-Modified-String> is date which is assigned to the document.
+The date format must be according to RFC 1123 like
+"EEE, dd MMM yyyy HH:mm:ss Z" with a time zone indicator according to RFC 5322
+
+responseHeader-X=Content-Type:<Content-Type-String>
+The <Content-Type-String> is mime type of the document. 
+
+Because media-type documents do not have a textual component which can be used
+for searching, it is possible to attach the title and keywords to the media
+document as well. To do this, the extra-http header fields X-YaCy-Media-Title
+and X-YaCy-Media-Keywords can be used:
+
+responseHeader-X=X-YaCy-Media-Title:<Title>
+The <Title> will be used as document title
+
+responseHeader-X=X-YaCy-Media-Keywords:<Keywords>
+<Keywords> is a list of keywords, separated by space characters.
+
+* Returned file:
+The servlet then returns a json result which explains how successful the
+transmission was. A typical result looks like:
+{
+ "count":"1",
+ "successall": "true",
+ "item-0":{
+   "item":"0",
+   "url":"http://nowhere.cc/example.txt",
+   "success": "true",
+   "message": "[a text representing a link which can be used to verify the success of the operation, like a query url]"
+ },
+ "countsuccess":1,
+ "countfail":0
+}
+
+The "message" attribute contains a link to a search result which shows the
+pushed document in indexed metadata format. In case that a push is not
+successful, the "success" attribute turns to "false" and the "message" field
+contains the reason for the failure. 
+
+
+
+#
+# servlet /api/crawl.json
+#
+
+This servlet orders the OpenWebIndex platform to load itself the requested
+content from the web. There can be requests to load only the specified page or
+also linked pages within a given pattern.
+
+- 'auth' (optional, should be required for depth != 0)
+This attribute must be filled with a value for authentication. This may be i.e.
+an OAuth string. Search results which do not require authorization must be
+identical to search request with and without the auth value to ensure
+transparency against the usage of authorized results
+
+- 'url' (required)
+The url which shall be loaded by the crawler.
+
+- 'depth' (optional, by default '0')
+The recursion number for the crawler which denotes the depth of the crawl.
+If this number is '0', then only the start document (given in url parameter) is
+loaded. It may be recommended to allow to crawl single pages without
+authentification while it is wise to grant authorization for large crawls only
+for authentified clients
+
+- 'collection' (optional)
+A name for a collection which is assigned to the documents. This can be an
+arbitrary word or a comma-separated list of terms. These words will be listed
+in the collection navigation for a search facet (if that facet is switched on).
+
+- 'url-must-match' (optional, by default '.*')
+- 'url-must-not-match' (optional, by default '')
+- 'content-must-match' (optional, by default '.*')
+- 'content-must-not-match' (optional, by default '')
+Regular expressions which allow a steering of the crawler. I.e. it is possible
+to crawl only a specific domain using the regular expression .*domain.*
+
+* Returned file:
+The servlet then returns a json result which explains how successful the
+crawl was. Because a crawl is a long-running job, the result must be given
+asynchronously to the crawl process and cannot know the outcome of the crawl
+job request. A typical result looks like:
+{
+   "success": "true",
+   "message": "[a text explaining the success value]"
+}
