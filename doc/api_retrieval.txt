@@ -4,3 +4,252 @@
 #
 # this document is a sub-specification of api_concept.txt
 #
+
+This document contains the api essentials for several services. Each service
+is implemented as http(s) servlet. Every servlet shall support the transmission
+of parameters as GET and POST operation. POST provides more security because
+the parameter values are not transmitted in the http metadata and therefore
+do not occur in http/proxy logs while GET operations are more convenient for
+development and testing.
+
+JSONP compliance:
+All json-servlets shall be callable with a GET/POST attribute 'callback'. If
+a servlet is called using that attribute, the whole result response is
+encapsulated into a JavaScript function call using the callback value as
+function name.
+
+Servlets described in this document:
+/api/search.[xml|json]
+/api/suggest.json
+
+
+#
+# servlet /api/search.[xml|json]
+#
+
+This is the access to document searches. There exist some standards for such a
+API type, i.e. SRU (http://www.loc.gov/standards/sru/) and
+Opensearch (http://www.opensearch.org/Specifications/OpenSearch/1.1/Draft_5).
+We want to support both standards and provide a subset of their attributes.
+Both standards do not specify enough details to provide the ability for
+facetted search; we will extend the standards in such a way that the
+necessary data entities are enclosed while still maintaining compliance with
+the given standards.
+
+* GET/POST parameters
+- 'query' (required):
+The query string identical to the text which the user typed in. The query
+string may contain search operators (like 'intitle:') very similar to common
+operators used by other search engines.
+
+- 'startRecord' (optional, default 1)
+The first record of the result set. Count starts with 1
+
+- 'maximumRecords' (optional, default 10)
+The number of records to be returned. It could be wise to limit the
+requested number to prevent excessive mass-retrieval. Default limitation
+may be i.e. 100.
+
+- 'collection' (optional)
+This may be used to restrict the results to a predefined set of documents.
+The value is a name of such a subset. The name may be defined in the context
+of search mandants. Mandants can be defined i.e. in the context of the
+contribution-api (see api_contribution.txt) where users can push content
+together with the name of their collection.
+
+- 'order' (optional)
+This is either the name of a pre-defined ranking method or a string which
+represents the schema for a user-defined ranking. The details of such a ranking
+schema text is yet not defined. It may contain methods such as field and
+query boosts. Both depend on the index field structure which is yet unknown.
+
+- 'filter' (optional, default empty)
+This shall be used to create result subsets based on facets. The format of
+the value is undefined but must be filled with a string which is named by
+the facet in the search result. Several filters can be combined by separating
+the individual filter strings with a space character. All filters operate
+in conjunction, the result is a intersection of the individual filter results.
+
+- 'domain' (optional, default 'all')
+The search result may contain links to documents, images, audio files and video
+files. This attribute can select one of these document types or all of them.
+Possible values are: 'doc', 'image', 'audio', 'video', 'all'
+
+- 'near' (optional, default 1)
+Some search engines do not create results based on exact matches of the search
+query but also enrich the result with fuzzy matches on the search string
+literals. Using this option, the result may be exact (value = 1) or fuzzy
+(0 < value < 1).
+
+- 'op' (optional, default 'and')
+If the query string contains several terms, then all terms are to be matched
+as they are combined with an AND operator or with an OR operator. This
+attribute can select the default matching mode. Possible values are 'and' and
+'or'. If 'or' is selected, the ranking prefers documents which match more
+terms of the search query.
+
+- 'auth' (optional, default empty, can only used with a POST http request)
+If an authorization for the query is necessary (i.e. for mass-retrieval) then
+this attribute can be filled with a value for authentication. This may be i.e.
+an OAuth string. Search results which do not require authorization must be
+identical to search request with and without the auth value to ensure
+transparency against the usage of authorized results
+
+* Returned file:
+The extension of the search servlet can be either xml or json. While we prefer
+the usage of json, the xml format is supported to return data in opensearch
+format. The json format follows the DOM of the opensearch api and models the
+json structure accordingly.
+
+XML return format:
+We extend opensearch with attributes to support search facets. Facet types may
+be defined separately or extended in the future, but we suggest to provide
+at least facets for file types (the extension of the file name), facets for
+the domain name and facets for the document date.
+This is an example output for a call to /api/search.xml?query=test
+
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type='text/xsl' href='/api/search.xsl' version='1.0'?>
+<rss version="2.0"
+    xmlns:openwebindex="" <!-- TO BE DEFINED -->
+    xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/"
+    xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#"
+>
+<channel>
+  <title>OpenWebSearch RSS Result for query: test</title>
+  <description>Search for test</description>
+  <link>/api/search.html?query=test</link>
+  <title>Search for test</title>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <opensearch:itemsPerPage>10</opensearch:itemsPerPage>
+  <atom:link rel="search" href="/api/opensearchdescription.xml"
+   type="application/opensearchdescription+xml"/>
+  <opensearch:Query role="request" searchTerms="test" />
+  <opensearch:totalResults>136</opensearch:totalResults>
+  <item>
+    <title>Test | Define Test at Dictionary.com</title>
+    <link>http://dictionary.reference.com/browse/test</link>
+    <description>there is never a final exam</description>
+    <pubDate>Sun, 14 Oct 2012 12:36:00 +0000</pubDate>
+    <dc:publisher><![CDATA[]]></dc:publisher>
+    <dc:creator><![CDATA[]]></dc:creator>
+    <dc:subject><![CDATA[English define definition dictionary examples meaning of online origin pronunciation test]]></dc:subject>
+    <guid isPermaLink="false">Q94aBepLAJSZ</guid>
+  </item>
+  
+  <openwebindex:navigation>
+  <openwebindex:facet name="domains" displayname="Domains" type="String">
+  <openwebindex:element name="chip.de" count="4" modifier="site%3Achip.de"/>
+  <openwebindex:element name="golem.de" count="3" modifier="site%3Agolem.de"/>
+  <openwebindex:element name="heise.de" count="2" modifier="site%3Aheise.de"/>
+  </openwebindex:facet>
+  
+  <openwebindex:facet name="authors" displayname="Authors" type="String">
+  <openwebindex:element name="News.de-Redaktion" count="1" modifier="author%3ANews.de-Redaktion"/>
+  <openwebindex:element name="heise online" count="1" modifier="author%3A%28heise+online%29"/>
+  <openwebindex:element name="Compania de Librarii Bucuresti" count="1" modifier="author%3A%28Compania+de+Librarii+Bucuresti%29"/>
+  </openwebindex:facet>
+  
+  <openwebindex:facet name="filetypes" displayname="Filetypes" type="String">
+  <openwebindex:element name="html" count="59" modifier="filetype%3Ahtml"/>
+  <openwebindex:element name="php" count="3" modifier="filetype%3Aphp"/>
+  <openwebindex:element name="aspx" count="1" modifier="filetype%3Aaspx"/>
+  </openwebindex:facet>
+
+  <openwebindex:facet name="protocols" displayname="Protocols" type="String">
+  <openwebindex:element name="http" count="127" modifier="%2Fhttp"/>
+  <openwebindex:element name="https" count="9" modifier="%2Fhttps"/>
+  </openwebindex:facet>
+  </openwebindex:navigation>
+  
+  </channel>
+</rss>
+
+The JSON version of the result page would look like:
+
+{
+  "channels": [{
+    "title": "OpenWebIndex Search for test",
+    "description": "Search for test",
+    "link": "/api/search.json?query=test",
+    "totalResults": "136",
+    "startIndex": "0",
+    "itemsPerPage": "10",
+    "searchTerms": "test",
+    
+    "items": [
+    {
+      "title": "Test | Define Test at Dictionary.com",
+      "link": "http://dictionary.reference.com/browse/test",
+      "description": "there is never a final exam",
+      "pubDate": "Sun, 14 Oct 2012 12:36:00 +0000",
+      "size": "26985",
+      "sizename": "26 kbyte",
+      "guid": "Q94aBepLAJSZ",
+      "host": "dictionary.reference.com",
+      "path": "/browse/test",
+    }
+    ],
+    "navigation": [
+    {
+      "facetname": "filetypes",
+      "displayname": "Filetype",
+      "type": "String",
+      "elements": [
+        {"name": "html", "count": "59", "modifier": "filetype%3Ahtml"},
+        {"name": "php", "count": "3", "modifier": "filetype%3Aphp"},
+        {"name": "aspx", "count": "1", "modifier": "filetype%3Aaspx"}
+      ]
+    },
+    {
+      "facetname": "protocols",
+      "displayname": "Protocol",
+      "type": "String",
+      "elements": [
+        {"name": "http", "count": "127", "modifier": "%2Fhttp"},
+        {"name": "https", "count": "9", "modifier": "%2Fhttps"}
+      ]
+    },
+    {
+      "facetname": "domains",
+      "displayname": "Domains",
+      "type": "String",
+      "elements": [
+        {"name": "chip.de", "count": "4", "modifier": "site%3Achip.de"},
+        {"name": "golem.de", "count": "3", "modifier": "site%3Agolem.de"},
+        {"name": "heise.de", "count": "2", "modifier": "site%3Aheise.de"}
+      ]
+    },
+    {
+      "facetname": "authors",
+      "displayname": "Authors",
+      "type": "String",
+      "elements": [
+        {"name": "News.de-Redaktion", "count": "1", "modifier": "author%3ANews.de-Redaktion"},
+        {"name": "heise online", "count": "1", "modifier": "author%3A%28heise+online%29"},
+        {"name": "Compania de Librarii Bucuresti", "count": "1", "modifier": "author%3A%28Compania+de+Librarii+Bucuresti%29"}
+      ]
+    }
+    ],
+    "totalResults": "136"
+  }]
+}
+
+
+#
+# servlet /api/suggest.json
+#
+
+The suggest api provides query suggestions as-you-type. The API uses the
+definition of the opensearch suggestion extension, see
+http://www.opensearch.org/Specifications/OpenSearch/Extensions/Suggestions/1.1
+and
+https://wiki.mozilla.org/Search_Service/Suggestions
+
+The servlet is called with one property value for 'q' only, for example:
+/api/suggest.json?q=test
+results in a JSON response:
+["test",["test internet speed","test equipment","test prep"]]
+
